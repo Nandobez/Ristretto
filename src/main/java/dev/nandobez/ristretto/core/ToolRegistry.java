@@ -34,21 +34,28 @@ public class ToolRegistry {
 
     public static boolean has(Tool t) { return locate(t) != null; }
 
+    /** Fast-startup JVM flags for short-lived CLI subprocesses (skip tiered JIT, cheap GC, use CDS). */
+    private static final String[] FAST_START =
+        { "-XX:TieredStopAtLevel=1", "-XX:+UseSerialGC", "-Xshare:auto" };
+
+    private static java.util.ArrayList<String> baseCmd(String jar, String... args) {
+        var cmd = new java.util.ArrayList<String>();
+        cmd.add("java");
+        for (String f : FAST_START) cmd.add(f);
+        cmd.add("-jar"); cmd.add(jar);
+        for (String a : args) cmd.add(a);
+        return cmd;
+    }
+
     public static int invoke(Tool t, String... args) throws Exception {
         String jar = locate(t);
         if (jar == null) throw new IllegalStateException(t.name + " not installed");
-        var cmd = new java.util.ArrayList<String>();
-        cmd.add("java"); cmd.add("-jar"); cmd.add(jar);
-        for (String a : args) cmd.add(a);
-        return new ProcessBuilder(cmd).inheritIO().start().waitFor();
+        return new ProcessBuilder(baseCmd(jar, args)).inheritIO().start().waitFor();
     }
 
     public static int invokeIn(Tool t, Path dir, String... args) throws Exception {
         String jar = locate(t);
         if (jar == null) throw new IllegalStateException(t.name + " not installed");
-        var cmd = new java.util.ArrayList<String>();
-        cmd.add("java"); cmd.add("-jar"); cmd.add(jar);
-        for (String a : args) cmd.add(a);
-        return new ProcessBuilder(cmd).directory(dir.toFile()).inheritIO().start().waitFor();
+        return new ProcessBuilder(baseCmd(jar, args)).directory(dir.toFile()).inheritIO().start().waitFor();
     }
 }

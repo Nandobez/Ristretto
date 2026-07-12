@@ -58,6 +58,17 @@ public class ResourceCmd implements Callable<Integer> {
         System.out.println("    " + GRN + "create" + R + "  " + modelPath);
         System.out.println("    " + GRN + "create" + R + "  " + pagePath);
 
+        // The @Page/@Model sources live under src/main/java, so javac (and macc's
+        // reflection scanner over target/classes) needs the macc DSL on the classpath.
+        String maccJar = ToolRegistry.locate(Tool.MACC);
+        Path pom = root.resolve("pom.xml");
+        if (maccJar != null && Files.exists(pom)) {
+            if (ensureMaccDependency(pom, maccJar))
+                System.out.println("    " + GRN + "update" + R + "  " + pom + DIM + "  (macc DSL dependency)" + R);
+        } else if (maccJar != null) {
+            info("non-Maven project — add the macc DSL jar to your build manually: " + maccJar);
+        }
+
         System.out.println();
         ok("backend + frontend ready. run " + BLD + "ristretto serve" + R);
         return 0;
@@ -97,6 +108,24 @@ public class ResourceCmd implements Callable<Integer> {
         }
         sb.append(") {}\n");
         return sb.toString();
+    }
+
+    /** Injects a system-scoped macc DSL dependency into the pom if not already present. Returns true if changed. */
+    static boolean ensureMaccDependency(Path pom, String maccJar) throws Exception {
+        String xml = java.nio.file.Files.readString(pom);
+        if (xml.contains("<artifactId>macc</artifactId>")) return false;
+        int idx = xml.lastIndexOf("</dependencies>");
+        if (idx < 0) return false;
+        String dep = ""
+            + "        <dependency>\n"
+            + "            <groupId>dev.nandobez</groupId>\n"
+            + "            <artifactId>macc</artifactId>\n"
+            + "            <version>0.1.0</version>\n"
+            + "            <scope>system</scope>\n"
+            + "            <systemPath>" + maccJar + "</systemPath>\n"
+            + "        </dependency>\n    ";
+        java.nio.file.Files.writeString(pom, xml.substring(0, idx) + dep + xml.substring(idx));
+        return true;
     }
 
     /** Minimal English pluralizer: consonant+y→ies, sibilants→es, else +s. */

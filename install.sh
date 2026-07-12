@@ -87,7 +87,7 @@ cp "$JAR" "$LIBDIR/ristretto.jar"
 for name in ristretto rist r; do
   cat > "$BINDIR/$name" <<EOF
 #!/usr/bin/env bash
-exec java -jar "$LIBDIR/ristretto.jar" "\$@"
+exec java -XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Xshare:auto -jar "$LIBDIR/ristretto.jar" "\$@"
 EOF
   chmod +x "$BINDIR/$name"
 done
