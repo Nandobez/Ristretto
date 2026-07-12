@@ -16,7 +16,8 @@ import static dev.nandobez.ristretto.cmd.Tui.*;
     description = "One shot. Three espressos. (jdp + xpresso + macc)",
     subcommands = {
         NewCmd.class, ResourceCmd.class, ServeCmd.class,
-        DoctorCmd.class, VersionCmd.class, UpdateCmd.class
+        DoctorCmd.class, VersionCmd.class, UpdateCmd.class,
+        InstallToolsCmd.class
     }
 )
 public class Main implements Runnable {
@@ -26,9 +27,10 @@ public class Main implements Runnable {
     public static void main(String[] args) {
         if (args.length == 0) { printHelp(); System.exit(0); }
 
-        // First, see if it's a known top-level subcommand.
-        boolean known = isKnownTopLevel(args[0]);
-        if (!known) {
+        CommandLine cl = new CommandLine(new Main());
+
+        // First, see if it's a known top-level subcommand (or help/version flag).
+        if (!isKnownTopLevel(cl, args[0])) {
             // Try pass-through (forward to jdp/xpresso/macc).
             Tool route = PassThrough.routeOf(args[0]);
             if (route != null) {
@@ -43,14 +45,20 @@ public class Main implements Runnable {
         }
 
         System.out.println();
-        int rc = new CommandLine(new Main()).execute(args);
+        int rc = cl.execute(args);
         System.out.println();
         System.exit(rc);
     }
 
-    private static boolean isKnownTopLevel(String cmd) {
+    /** Derives the accepted top-level tokens from picocli itself, so the list never drifts from @Command. */
+    private static boolean isKnownTopLevel(CommandLine cl, String cmd) {
+        for (var sub : cl.getSubcommands().values()) {
+            var spec = sub.getCommandSpec();
+            if (spec.name().equals(cmd)) return true;
+            for (String alias : spec.aliases()) if (alias.equals(cmd)) return true;
+        }
         return switch (cmd) {
-            case "new", "resource", "serve", "s", "doctor", "version", "v", "update", "-h", "--help", "-V", "--version" -> true;
+            case "-h", "--help", "-V", "--version" -> true;
             default -> false;
         };
     }

@@ -52,7 +52,7 @@ public class ResourceCmd implements Callable<Integer> {
         String modelSrc = modelTemplate(basePackage + ".ui", name, fields);
         String pageSrc  = pageTemplate(basePackage + ".ui", name, fields);
         Path modelPath = uiDir.resolve(name + "Model.java");
-        Path pagePath  = uiDir.resolve(name + "sPage.java");
+        Path pagePath  = uiDir.resolve(pluralize(name) + "Page.java");
         Files.writeString(modelPath, modelSrc);
         Files.writeString(pagePath,  pageSrc);
         System.out.println("    " + GRN + "create" + R + "  " + modelPath);
@@ -99,8 +99,20 @@ public class ResourceCmd implements Callable<Integer> {
         return sb.toString();
     }
 
+    /** Minimal English pluralizer: consonant+y→ies, sibilants→es, else +s. */
+    static String pluralize(String w) {
+        if (w == null || w.isEmpty()) return w;
+        String lower = w.toLowerCase();
+        if (lower.endsWith("y") && w.length() > 1 && "aeiou".indexOf(lower.charAt(lower.length() - 2)) < 0)
+            return w.substring(0, w.length() - 1) + "ies";
+        if (lower.endsWith("s") || lower.endsWith("x") || lower.endsWith("z")
+            || lower.endsWith("ch") || lower.endsWith("sh"))
+            return w + "es";
+        return w + "s";
+    }
+
     private static String pageTemplate(String pkg, String name, List<String> fields) {
-        String plural = name + "s"; // very simple
+        String plural = pluralize(name);
         String pluralLower = plural.toLowerCase();
         String firstField = fields.get(0).split(":")[0];
         return """

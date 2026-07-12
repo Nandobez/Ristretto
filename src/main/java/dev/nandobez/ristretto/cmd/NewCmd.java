@@ -30,7 +30,7 @@ public class NewCmd implements Callable<Integer> {
     public Integer call() throws Exception {
         banner("ristretto new " + name, group + (useGradle ? " · gradle" : " · maven"));
 
-        if (!ToolRegistry.has(Tool.XPRESSO)) { error("xpresso not installed. Run: ristretto install-tools"); return 2; }
+        if (!ToolRegistry.has(Tool.XPRESSO)) { error("xpresso not installed. Run: ristretto update"); return 2; }
 
         var args = new java.util.ArrayList<String>();
         args.add("new"); args.add(name); args.add("--group"); args.add(group); args.add("--java"); args.add(javaVersion);
@@ -40,7 +40,7 @@ public class NewCmd implements Callable<Integer> {
 
         if (!noFrontend) {
             if (!ToolRegistry.has(Tool.MACC)) {
-                error("macc not installed — skipping frontend. Run: ristretto install-tools");
+                error("macc not installed — skipping frontend. Run: ristretto update");
             } else {
                 Path projectRoot = Path.of(name).toAbsolutePath();
                 info("setting up Macc frontend in " + name + "/src/main/frontend");
