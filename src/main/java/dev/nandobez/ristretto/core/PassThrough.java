@@ -14,7 +14,7 @@ public class PassThrough {
         for (String c : new String[]{"list","ls","search","add","rm","remove","unused","weight","why","diff","migrate","init"})
             ROUTES.put(c, Tool.JDP);
         // xpresso
-        for (String c : new String[]{"g","generate","server","s","console","c","build","test","t","db","routes","clean","compile","install","deps","dependencies"})
+        for (String c : new String[]{"g","generate","server","s","console","c","build","test","t","db","routes","clean","compile","install","deps","dependencies","api"})
             ROUTES.put(c, Tool.XPRESSO);
         // macc
         for (String c : new String[]{"codegen","dev"})
