@@ -41,9 +41,18 @@ public class InstallToolsCmd implements Callable<Integer> {
                 failed++;
                 continue;
             }
-            info("building " + BLD + t.name + R + "  " + DIM + src + R);
-            int rc = mvnPackage(src);
-            if (rc != 0) { error(t.name + " build failed (rc=" + rc + ")"); failed++; continue; }
+            Spinner sp = Spinner.start("building " + t.name + "  " + src);
+            String mvn = System.getProperty("os.name").toLowerCase().contains("win") ? "mvn.cmd" : "mvn";
+            Process mp = new ProcessBuilder(mvn, "-q", "-DskipTests", "package")
+                .directory(src.toFile()).redirectErrorStream(true).start();
+            String buildOut = new String(mp.getInputStream().readAllBytes());
+            int rc = mp.waitFor();
+            if (rc != 0) {
+                sp.fail(t.name + " build failed (rc=" + rc + ")");
+                buildOut.lines().skip(Math.max(0, buildOut.split("\n").length - 15)).forEach(System.out::println);
+                failed++; continue;
+            }
+            sp.stop();
 
             Path jar = src.resolve("target").resolve(t.name + ".jar");
             if (!Files.exists(jar)) { error(t.name + " produced no target/" + t.name + ".jar"); failed++; continue; }
@@ -76,12 +85,4 @@ public class InstallToolsCmd implements Callable<Integer> {
         return null;
     }
 
-    private static int mvnPackage(Path dir) throws Exception {
-        String mvn = System.getProperty("os.name").toLowerCase().contains("win") ? "mvn.cmd" : "mvn";
-        return new ProcessBuilder(mvn, "-q", "-DskipTests", "package")
-            .directory(dir.toFile())
-            .inheritIO()
-            .start()
-            .waitFor();
-    }
 }

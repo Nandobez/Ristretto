@@ -31,6 +31,22 @@ class PassThroughTest {
     }
 
     @Test
+    void routesNewlyCoveredXpressoVerbs() {
+        assertEquals(Tool.XPRESSO, PassThrough.routeOf("config"));
+        assertEquals(Tool.XPRESSO, PassThrough.routeOf("beans"));
+        assertEquals(Tool.XPRESSO, PassThrough.routeOf("api"));
+        assertEquals(Tool.JDP, PassThrough.routeOf("repl"));
+    }
+
+    @Test
+    void resolvesExplicitToolPrefixes() {
+        assertEquals(Tool.JDP, PassThrough.routeOf("jdp"));
+        assertEquals(Tool.XPRESSO, PassThrough.routeOf("xpresso"));
+        assertEquals(Tool.XPRESSO, PassThrough.routeOf("xp"));
+        assertEquals(Tool.MACC, PassThrough.routeOf("macc"));
+    }
+
+    @Test
     void returnsNullForUnknownVerb() {
         assertNull(PassThrough.routeOf("frobnicate"));
     }

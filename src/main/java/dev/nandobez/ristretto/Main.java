@@ -16,6 +16,7 @@ import static dev.nandobez.ristretto.cmd.Tui.*;
     description = "One shot. Three espressos. (jdp + xpresso + macc)",
     subcommands = {
         NewCmd.class, ResourceCmd.class, ServeCmd.class,
+        UpCmd.class, DownCmd.class, StatusCmd.class, LogsCmd.class,
         DoctorCmd.class, VersionCmd.class, UpdateCmd.class,
         InstallToolsCmd.class
     }
@@ -91,14 +92,16 @@ public class Main implements Runnable {
         System.out.println();
         System.out.println("  " + DIM + "PASS-THROUGH" + R + DIM + "  (forwarded to the right tool)" + R);
         System.out.println();
-        System.out.println("    " + DIM + "jdp" + R + "       list, search, add, rm, why, weight, unused, diff, migrate");
-        System.out.println("    " + DIM + "xpresso" + R + "   g, server, console, build, test, db, routes, clean, compile, install");
+        System.out.println("    " + DIM + "jdp" + R + "       list, search, add, rm, why, weight, unused, diff, migrate, init, repl");
+        System.out.println("    " + DIM + "xpresso" + R + "   g, server/s, console/c, build, test/t, db, routes, clean, compile,");
+        System.out.println("    " + DIM + "          " + R + "install, deps, api, watch, config, health, profile, beans");
         System.out.println("    " + DIM + "macc" + R + "      codegen, dev");
         System.out.println();
-        System.out.println("    " + DIM + "examples:" + R);
+        System.out.println("    " + DIM + "any verb, or target a tool directly with a prefix:" + R);
         System.out.println("    " + DIM + "  r add starter-data-jpa     " + R + "→ jdp add");
         System.out.println("    " + DIM + "  r g model User name:string " + R + "→ xpresso g model");
-        System.out.println("    " + DIM + "  r codegen                  " + R + "→ macc codegen");
+        System.out.println("    " + DIM + "  r xpresso beans            " + R + "→ xpresso beans");
+        System.out.println("    " + DIM + "  r macc add Button          " + R + "→ macc add  (bypasses conflicts)");
         System.out.println();
 
         // Quick status line

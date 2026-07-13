@@ -57,7 +57,8 @@ public class VersionCmd implements Callable<Integer> {
     private static void printOnce(String label, String shell) {
         try {
             var p = new ProcessBuilder("bash", "-c", shell).redirectErrorStream(true).start();
-            String out = new String(p.getInputStream().readAllBytes()).trim();
+            String out = new String(p.getInputStream().readAllBytes())
+                .replaceAll("\\u001B\\[[0-9;]*m", "").trim();
             p.waitFor();
             if (out.isEmpty()) System.out.println("    " + RED + "✗ " + R + label + DIM + "  not found" + R);
             else               System.out.println("    " + GRN + "✓ " + R + pad(label, 9) + DIM + out + R);
