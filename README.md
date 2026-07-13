@@ -85,13 +85,74 @@ real request schema.
 
 Any subcommand of the trio is reachable directly:
 
+### jdp — dependency management
+
 ```bash
-rist add starter-actuator       # → jdp add
-rist list · rist why · rist doctor    # → jdp
-rist g model User name:string   # → xpresso g model
-rist routes · rist beans · rist db info · rist test · rist compile   # → xpresso
-rist codegen · rist dev            # → macc
+rist add starter-web              # add + verify chain + picker + role conflict
+rist list                         # declared deps as a table
+rist search jpa                   # Maven Central with ★ canonical highlight
+rist rm log4j-core                # remove with fuzzy suggestions
+rist why tomcat                   # transitive chain (dependency:tree, prettified)
+rist weight -n 20                 # top jars by size
+rist unused --clean               # declared deps without imports
+rist doctor                       # CVE (OSV.dev) + outdated + score
+rist doctor --fix                 # bump CVE deps to patched versions
+rist diff org.springframework.boot spring-boot-starter-parent 3.3.4 3.4.0
+rist migrate                      # maven → gradle (Kotlin DSL)
+rist init my-api -t rest-api      # scaffold: rest-api | batch | lib
+rist repl                         # interactive shell with artifact tab-complete
 ```
+
+### xpresso — backend (Spring Boot)
+
+```bash
+rist new shop --group io.acme                 # scaffold project
+rist g resource Product name:string price:decimal   # CRUD: model + service + controller + tests
+rist g model Order user:belongs_to status:enum(NEW,PAID,SHIPPED)  # entity + DTOs + migration
+rist g seed Product name:string price:decimal --count 30          # Faker factory + dev seeder
+rist g controller User                        # DTO-based REST controller
+rist g service Order                          # @Transactional @Service
+rist g migration "add index"                  # blank Flyway migration
+rist g auth                                   # AppUser + bcrypt + SecurityConfig
+rist g endpoint users POST /{id}/archive      # add method to existing controller
+rist g job / event / exception / config / component / test
+
+rist server, s                                # spring-boot:run (auto-builds frontend)
+rist console, c                               # Spring Shell / jshell fallback
+rist build                                    # clean + package (skips tests)
+rist test                                     # test suite
+rist compile                                  # mvn compile (+ macc codegen if frontend)
+rist clean --deep                             # mvn clean + node_modules
+rist watch                                    # re-compile on every .java change
+rist install                                  # clean + install + macc install
+
+rist db migrate                               # Flyway migrate
+rist db status                                # Flyway state
+rist db rollback                              # Flyway undo
+rist db clean                                 # Flyway clean (destructive)
+rist db repair                                # Flyway repair
+
+rist routes                                   # list endpoints (colour-coded by verb)
+rist beans                                    # list @Service / @Repository / @Controller
+rist config                                   # @ConfigurationProperties + application.yml
+rist health                                   # curl /actuator/health, pretty-print
+rist api GET products                         # hit the running app
+rist api POST -m products                     # -m mocks valid body from OpenAPI
+rist api GET products --raw                   # raw (colored) JSON
+
+rist deps                                     # → jdp list
+rist doctor --fix                             # → jdp doctor
+rist profile add dev                          # create application-dev.yml
+```
+
+### macc — frontend (React)
+
+```bash
+rist codegen                  # scan @Page/@Model → emit .tsx + types + routes
+rist dev                      # vite hot reload (frontend only)
+```
+
+### explicit tool prefix
 
 For verbs that exist in more than one tool, target it explicitly:
 
