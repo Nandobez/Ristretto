@@ -19,7 +19,7 @@ Download **one** tool, drive **all three**.
 
 Default alias: `rist` (also: `r`, `ristretto`).
 
-<p align="center"><video src="rist_min.mp4" controls width="640"></video></p>
+**[▶ Demo video](rist_min.mp4)**
 
 ## Install
 
