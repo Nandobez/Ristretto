@@ -61,6 +61,7 @@ public final class Solver {
         var fixes = new ArrayList<String>();
         var bracesDone = new HashSet<String>();
         var importsDone = new HashSet<String>();
+        var semiDone = new HashSet<String>();  // javac often reports ';' expected twice (compiler + summary)
         String[] raw = mvnOut.split("\n");
         for (int i = 0; i < raw.length; i++) {
             var m = JAVAC_ERR.matcher(strip(raw[i]));
@@ -71,7 +72,7 @@ public final class Solver {
             try {
                 if (!Files.isRegularFile(file)) continue;
                 if (msg.contains("';' expected")) {
-                    if (insertSemicolon(file, line, col))
+                    if (semiDone.add(file + ":" + line) && insertSemicolon(file, line, col))
                         fixes.add("inserted missing ';' — " + file.getFileName() + ":" + line);
                 } else if (msg.contains("reached end of file while parsing")) {
                     if (bracesDone.add(file.toString())) {
@@ -102,7 +103,9 @@ public final class Solver {
         if (line < 1 || line > lines.size()) return false;
         String l = lines.get(line - 1);
         int pos = Math.min(Math.max(col - 1, 0), l.length());
-        if (pos > 0 && pos <= l.length() && l.substring(0, pos).stripTrailing().endsWith(";")) return false;
+        // already terminated? check the char at the insertion point and the one just before it
+        if (pos < l.length() && l.charAt(pos) == ';') return false;
+        if (l.substring(0, pos).stripTrailing().endsWith(";")) return false;
         lines.set(line - 1, l.substring(0, pos) + ";" + l.substring(pos));
         Files.writeString(file, String.join("\n", lines) + "\n");
         return true;

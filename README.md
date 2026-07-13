@@ -58,7 +58,8 @@ rist down
 
 | Command | What it does |
 |---------|--------------|
-| `rist up [--profile dev] [--port N] [--build]` | package (if needed) + run **detached**; shows a ready banner with Local/Network/Swagger/Health URLs |
+| `rist up [--profile dev] [--port N] [--build] [--solve]` | package (if needed) + run **detached**; shows a ready banner with Local/Network/Swagger/Health URLs. `--solve` auto-fixes common blockers (duplicate migrations, ordering FKs, missing `;`/imports, boot-time NPE/out-of-bounds) then retries |
+| `rist reload [--solve]` | stop + fresh build + start — pick up code changes in one command (alias: `restart`) |
 | `rist status` | running (pid · uptime) with the same banner, or `stopped` |
 | `rist logs [-f] [-n N] [--raw]` | app logs reformatted `time · level · message` |
 | `rist down` | stop the app started by `up` |
@@ -80,6 +81,51 @@ rist api GET orders --raw       # raw (colored) JSON
 
 `api` reads the running app's `/v3/api-docs`, so `-m` bodies always satisfy the
 real request schema.
+
+## Consume any external API
+
+Point `rist` at an API and it generates a typed backend client — a record model,
+a Spring `RestClient`, and a controller that re-exposes it under `/api/…`:
+
+```bash
+rist api --client Product --url https://fakestoreapi.com/products   # GET → list()/get(id) + controller
+rist api --client Post --curl                                       # paste a curl; method/auth/body detected
+rist api --client Post https://api.example.com/posts -X POST -d '{"title":"x"}'   # curl-less POST
+```
+
+**Auto-detect the whole API** from its OpenAPI/Swagger schema — or by probing the
+endpoint (OPTIONS + GET) when it doesn't publish one:
+
+```bash
+rist api --discover --url https://petstore3.swagger.io/api/v3               # list every endpoint + its fields
+rist api --discover --url https://api.example.com --client Pet --pick "POST /pet"   # generate one
+rist api --discover --url https://api.example.com --all                    # generate all
+```
+
+**Keys & login** are detected and kept in `.env` (never hardcoded, read via `@Value`):
+
+```bash
+# static key (x-api-key / Bearer / ?key=) — detected from the curl headers
+rist api --client Weather --curl
+
+# login → JWT → sent as Bearer on every call, with automatic re-login on 401
+rist api --client Me --url https://dummyjson.com/auth/me \
+  --login https://dummyjson.com/auth/login \
+  --login-body '{"username":"$DUMMY_USER","password":"$DUMMY_PASS"}'
+```
+
+### Interactive API console — `rist api --try`
+
+A tiny Postman in the terminal, over your running app:
+
+```bash
+rist api --try
+```
+
+- fuzzy-search the endpoints (live filter + arrow keys)
+- fill the request body field-by-field (nested objects & arrays)
+- fire with a loading spinner, then read the response **formatted** (table for
+  lists, key/value for objects, colored by type) or toggle `[r]` for raw JSON
 
 ## Everything through `rist`
 

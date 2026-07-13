@@ -16,7 +16,7 @@ import static dev.nandobez.ristretto.cmd.Tui.*;
     description = "One shot. Three espressos. (jdp + xpresso + macc)",
     subcommands = {
         NewCmd.class, ResourceCmd.class, ServeCmd.class,
-        UpCmd.class, DownCmd.class, StatusCmd.class, LogsCmd.class,
+        UpCmd.class, DownCmd.class, ReloadCmd.class, StatusCmd.class, LogsCmd.class,
         DoctorCmd.class, VersionCmd.class, UpdateCmd.class,
         InstallToolsCmd.class
     }

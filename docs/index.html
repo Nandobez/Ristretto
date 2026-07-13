@@ -425,7 +425,8 @@ footer a:hover{color:var(--accent)}
         <p>lifecycle for the app rist started — state under <code>.ristretto/</code></p>
       </div>
       <table class="cmd">
-        <tr><td>rist up [--profile dev] [--port N] [--build]</td><td>package (if needed) + run detached; ready banner with Local / Network / Swagger / Health URLs</td></tr>
+        <tr><td>rist up [--profile dev] [--port N] [--build] [--solve]</td><td>package (if needed) + run detached; ready banner with Local / Network / Swagger / Health URLs. <code>--solve</code> auto-fixes common blockers (duplicate migrations, ordering FKs, missing <code>;</code>/imports, boot-time NPE) then retries</td></tr>
+        <tr><td>rist reload [--solve]</td><td>stop + fresh build + start — pick up code changes in one command (alias <code>restart</code>)</td></tr>
         <tr><td>rist status</td><td><code>running</code> (pid · uptime) with the same banner, or <code>stopped</code></td></tr>
         <tr><td>rist logs [-f] [-n N] [--raw]</td><td>app logs reformatted <code>time · level · message</code></td></tr>
         <tr><td>rist down</td><td>stop the app started by <code>up</code></td></tr>
@@ -450,6 +451,27 @@ footer a:hover{color:var(--accent)}
 <span class="p">$</span> rist api DELETE orders/1
 <span class="p">$</span> rist api GET orders --raw               <span class="c"># raw (colored) JSON</span></pre>
           <button data-copy="rist api GET orders">copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc" id="d-consume">
+    <div class="doc-grid">
+      <div class="doc-title">
+        <h3>Consume any API<small>--client · --discover · --try</small></h3>
+        <p>point rist at an external API and it generates a typed backend client — a record model, a Spring <code>RestClient</code>, and a controller that re-exposes it under <code>/api/…</code>. Keys and JWT logins are detected and kept in <code>.env</code>, never in code</p>
+      </div>
+      <div>
+        <div class="block">
+          <pre><span class="p">$</span> rist api --client Product --url https://fakestoreapi.com/products  <span class="c"># GET → model + client + controller</span>
+<span class="p">$</span> rist api --client Post --curl                    <span class="c"># paste a curl; method/auth/body detected</span>
+<span class="p">$</span> rist api --discover --url https://petstore3.swagger.io/api/v3     <span class="c"># auto-detect every endpoint + fields</span>
+<span class="p">$</span> rist api --client Pet --discover --url … --pick "POST /pet"       <span class="c"># generate one from the schema</span>
+<span class="p">$</span> rist api --client Me --url …/auth/me \
+    --login …/auth/login --login-body '{"username":"$USER","password":"$PASS"}'  <span class="c"># login → JWT → Bearer, re-login on 401</span>
+<span class="p">$</span> rist api --try                                   <span class="c"># interactive Postman: fuzzy pick, fill body, formatted/raw</span></pre>
+          <button data-copy="rist api --try">copy</button>
         </div>
       </div>
     </div>
