@@ -19,7 +19,7 @@ Download **one** tool, drive **all three**.
 
 Default alias: `rist` (also: `r`, `ristretto`).
 
-**[▶ Demo video](rist_min.mp4)**
+**[▶ Demo video](https://github.com/Nandobez/Ristretto/releases/download/v0.1.0/rist_min.mp4)**
 
 ## Install
 
