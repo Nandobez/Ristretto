@@ -1,8 +1,6 @@
 <div align="center">
 
-<p align="center"><img src="rist.png" alt="Ristretto" width="320"></p>
-
-# Ristretto
+<p align="center"><img src="rist.png" alt="Ristretto" width="520"></p>
 
 ### One shot. Three espressos.
 
