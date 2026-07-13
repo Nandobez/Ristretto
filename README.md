@@ -1,6 +1,8 @@
 <div align="center">
 
-# ☕ Ristretto
+<p align="center"><img src="rist.png" alt="Ristretto" width="320"></p>
+
+# Ristretto
 
 ### One shot. Three espressos.
 
@@ -18,6 +20,8 @@ and hit your API — all through one command.
 Download **one** tool, drive **all three**.
 
 Aliases: `ristretto` · `rist` · `r`.
+
+<p align="center"><video src="rist_min.mp4" controls width="640"></video></p>
 
 ## Install
 
