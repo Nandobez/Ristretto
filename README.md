@@ -10,10 +10,12 @@
 </div>
 
 `ristretto` bundles **[jdp](https://github.com/Nandobez/jdp)** (deps)
-\+ **[Xpresso](https://github.com/Nandobez/Xpresso)** (backend) +
-**[Macchiato](https://github.com/Nandobez/Macchiato)** (frontend) into
-a single CLI and adds **fullstack recipes** that touch all three at
-once.
+\+ **[Xpresso](https://github.com/Nandobez/Xpresso)** (backend)
+\+ **[Macchiato](https://github.com/Nandobez/Macchiato)** (frontend) into a
+single CLI, and adds a **fullstack lifecycle** on top: scaffold, run, inspect,
+and hit your API — all through one command.
+
+Download **one** tool, drive **all three**.
 
 Aliases: `ristretto` · `rist` · `r`.
 
@@ -23,125 +25,116 @@ Aliases: `ristretto` · `rist` · `r`.
 curl -fsSL https://raw.githubusercontent.com/Nandobez/Ristretto/main/install.sh | bash
 ```
 
-The installer pulls **jdp**, **xpresso**, **macc**, then builds and
-installs **ristretto** itself.
+The installer pulls **jdp**, **xpresso**, **macc**, then builds and installs
+**ristretto** itself. Already have the trio? Run `ristretto install-tools` to
+build them from local source, or `ristretto update` to fetch the latest.
 
-Use `--solo` to skip the trio (`curl … | bash -s -- --solo`) when you
-already have jdp/xpresso/macc.
-
-## 60-second fullstack
+## 60-second backend
 
 ```bash
-r new cafe-shop --group io.acme               # backend (xpresso) + frontend (macc) together
-cd cafe-shop
-r resource Order item:string price:decimal paid:bool   # CRUD across both layers
-r serve                                       # backend :8080 + vite :5173 with proxy
+r new shop --group io.acme --no-frontend
+cd shop
+r resource Order item:string qty:int paid:bool   # full CRUD, tests, error handler
+r g seed Order item:string qty:int paid:bool      # fake data on dev startup
+r up                                              # build + run detached
+r api GET orders                                  # hit the live API
+r down
 ```
 
-`r resource` generates **eight files** in one go:
-- `domain/Order.java` (JPA entity)
+`r resource` generates a complete, compiling CRUD slice:
+
+- `domain/Order.java` — JPA entity
 - `repository/OrderRepository.java`
-- `dto/OrderDto.java`
-- `service/OrderService.java`
-- `web/OrderController.java` (REST CRUD)
-- `db/migration/V…__create_orders.sql` (Flyway)
-- `ui/OrderModel.java` (TS-shared record)
-- `ui/OrdersPage.java` (Macc @Page)
+- `dto/OrderRequest.java` (validated, no id) + `dto/OrderResponse.java`
+- `service/OrderService.java` — `@Transactional`
+- `web/OrderController.java` — DTO-based, paged
+- `exception/GlobalExceptionHandler.java` — 400 / 404 / 500
+- `resources/db/migration/V…__create_orders.sql` — Flyway
+- `…ServiceTest` + `…ControllerTest`
 
-Then `r serve` runs xpresso (backend) + vite (frontend) in parallel —
-edits to either are hot-reloaded.
+## Run & manage
 
-## Commands
+| Command | What it does |
+|---------|--------------|
+| `r up [--profile dev] [--port N] [--build]` | package (if needed) + run **detached**; shows a ready banner with Local/Network/Swagger/Health URLs |
+| `r status` | running (pid · uptime) with the same banner, or `stopped` |
+| `r logs [-f] [-n N] [--raw]` | app logs reformatted `time · level · message` |
+| `r down` | stop the app started by `up` |
+| `r serve` | dev mode: backend **and** frontend in parallel |
 
-### Fullstack (ristretto own)
+State lives under `.ristretto/` (git-ignored automatically).
 
+## Talk to your API
+
+```bash
+r api GET orders             # aligned table + pagination
+r api GET orders/1           # single record
+r api POST -m orders         # -m fills a valid mock body from OpenAPI
+r api POST -m orders item=Cafe qty=3   # key=value overrides
+r api PUT -m orders/1
+r api DELETE orders/1
+r api GET orders --raw       # raw (colored) JSON
 ```
-new <name>                       scaffold backend + frontend together
-resource <Name> <fields...>      CRUD across backend AND frontend
-serve, s                         backend + frontend in parallel
-doctor [--fix]                   CVE + outdated checks (delegates to jdp)
-version, v                       show all 4 tools + JDK + Node versions
-update                           update jdp + xpresso + macc to latest
+
+`api` reads the running app's `/v3/api-docs`, so `-m` bodies always satisfy the
+real request schema.
+
+## Everything through `r`
+
+Any subcommand of the trio is reachable directly:
+
+```bash
+r add starter-actuator       # → jdp add
+r list · r why · r doctor    # → jdp
+r g model User name:string   # → xpresso g model
+r routes · r beans · r db info · r test · r compile   # → xpresso
+r codegen · r dev            # → macc
 ```
 
-### Pass-through
+For verbs that exist in more than one tool, target it explicitly:
 
-Any unknown verb is forwarded to the right tool:
-
-```
-r list                           → jdp list
-r add starter-data-jpa           → jdp add
-r search jjwt                    → jdp search
-r weight                         → jdp weight
-r why tomcat                     → jdp why
-r g model User name:string       → xpresso g model
-r server                         → xpresso s
-r build                          → xpresso build
-r db migrate                     → xpresso db migrate
-r routes                         → xpresso routes
-r console                        → xpresso console
-r codegen                        → macc codegen
-r dev                            → macc dev
+```bash
+r xpresso g resource Post title:string   # force xpresso
+r macc add Button                        # force macc (not jdp's add)
+r jdp --help
 ```
 
 ## How it composes
 
 ```
-                  ┌──────────────────┐
-                  │   r <command>    │
-                  └────────┬─────────┘
-                           │
-            ┌──────────────┼──────────────┐
-            ▼              ▼              ▼
-       ┌─────────┐    ┌──────────┐   ┌────────┐
-       │   jdp   │    │  xpresso │   │  macc  │
-       │  deps   │    │ backend  │   │ front  │
-       └─────────┘    └──────────┘   └────────┘
-                           │
-                           ▼
-               ┌─────────────────────────┐
-               │  Spring Boot @ :8080    │
-               │  + bundled React (vite) │
-               └─────────────────────────┘
+        ┌──────────────────┐
+        │   r <command>    │
+        └────────┬─────────┘
+                 │
+   ┌─────────────┼─────────────┐
+   ▼             ▼             ▼
+┌───────┐   ┌──────────┐   ┌────────┐
+│  jdp  │   │ xpresso  │   │  macc  │
+│ deps  │   │ backend  │   │ front  │
+└───────┘   └──────────┘   └────────┘
+                 │
+                 ▼
+      ┌─────────────────────────┐
+      │   Spring Boot @ :8080   │
+      │  + bundled React (vite) │
+      └─────────────────────────┘
 ```
 
-## Recipes
-
-### Add a backend dep + verify
+## Meta
 
 ```bash
-r add starter-actuator              # jdp add (with verify chain)
-r doctor                            # jdp doctor — CVE + outdated + score
+r version         # ristretto + jdp + xpresso + macc + JDK + Node
+r update          # update the trio to latest
+r install-tools   # build the trio from local source (offline)
 ```
 
-### Hot-reload while editing pages
-
-```bash
-r serve                             # backend + vite together
-# edit ui/OrdersPage.java
-# macc codegen runs automatically on file change
-# vite hot-reloads the page
-```
-
-### Ship to production
-
-```bash
-r doctor --fix                      # auto-bump CVE deps
-r install                           # mvn clean install + macc install
-java -jar target/cafe-shop-*.jar    # single jar serves backend + frontend
-```
+Colors honor `NO_COLOR` and non-tty output. An opt-in GraalVM binary can be
+built with `mvn -Pnative package` (requires `native-image`).
 
 ## Environment
 
-The tools are located by:
+Tools are located by:
 
 1. `$JDP_HOME` / `$XPRESSO_HOME` / `$MACC_HOME` (if set)
 2. `~/.local/share/<tool>/<tool>.jar`
 3. `/usr/local/share/<tool>/<tool>.jar`
-4. `/tmp/<tool>/target/<tool>.jar` (dev builds)
-
-`r version` shows which paths are picked.
-
-## License
-
-MIT — Fernando Bezerra · 2026
